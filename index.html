@@ -37,7 +37,7 @@
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col overflow-hidden">
 
     <!-- 상단 헤더 -->
-    <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between shadow-md">
+    <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex items-center justify-between shadow-md z-20">
         <div class="flex items-center space-x-3">
             <div class="bg-yellow-500 text-slate-950 p-2 rounded-lg font-black text-xl flex items-center justify-center shadow-lg">
                 <i data-lucide="zap" class="w-6 h-6 animate-pulse"></i>
@@ -56,7 +56,7 @@
             </button>
             <button id="btn-mission-toggle" class="bg-blue-600 hover:bg-blue-500 text-white font-medium px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition duration-200 shadow-md text-sm">
                 <i data-lucide="trophy" class="w-4 h-4"></i>
-                <span>미션 확인하기</span>
+                <span>미션 & 예시 보기</span>
             </button>
             <button id="btn-reset" class="bg-slate-700 hover:bg-slate-600 text-slate-200 font-medium px-3.5 py-2 rounded-lg flex items-center gap-1.5 transition duration-200 border border-slate-600 text-sm">
                 <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
@@ -174,7 +174,7 @@
                     </button>
                 </div>
 
-                <!-- 실시간 동적 스마트 팁 바 (학생들의 훌륭한 나침반이 됩니다) -->
+                <!-- 실시간 동적 스마트 팁 바 -->
                 <div class="bg-blue-950/95 backdrop-blur border border-blue-800/80 rounded-lg px-3.5 py-2 flex items-center space-x-2.5 shadow-lg text-xs text-blue-200 max-w-full md:max-w-md pointer-events-auto">
                     <span class="w-2.5 h-2.5 rounded-full bg-yellow-400 animate-pulse shrink-0"></span>
                     <span id="info-current-tip" class="font-medium">배터리와 꼬마전구를 먼저 배치한 후 드래그하여 연결선을 완성해보세요!</span>
@@ -192,9 +192,136 @@
             <!-- 메인 인터랙티브 캔버스 -->
             <div class="flex-1 w-full h-full relative grid-bg" id="canvas-container">
                 <canvas id="circuit-canvas" class="absolute top-0 left-0 w-full h-full"></canvas>
+
+                <!-- 드래그 가능한 Floating 미션 & 예시 팝업창 -->
+                <div id="mission-panel" class="absolute right-4 top-16 w-80 md:w-85 bg-slate-900/95 backdrop-blur border border-slate-700 shadow-2xl rounded-2xl z-30 flex flex-col hidden pointer-events-auto max-h-[75vh]">
+                    <!-- 드래그용 핸들 헤더 -->
+                    <div id="mission-header" class="p-3 border-b border-slate-800 flex items-center justify-between bg-slate-850 cursor-move rounded-t-2xl">
+                        <div class="flex items-center space-x-2 text-yellow-400">
+                            <i data-lucide="trophy" class="w-5 h-5"></i>
+                            <h3 class="font-bold text-sm text-white select-none">도전 미션 & 학습 예시</h3>
+                        </div>
+                        <button id="btn-mission-close" class="text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                        
+                        <!-- 예시 학습 가이드 탭 (신규 추가) -->
+                        <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-3 space-y-2.5">
+                            <h4 class="font-bold text-xs text-blue-400 flex items-center gap-1.5">
+                                <i data-lucide="book-open" class="w-4 h-4"></i>
+                                <span>시작하기 전에! 회로 예시 구경하기</span>
+                            </h4>
+                            <p class="text-[11px] text-slate-300 leading-relaxed">아래 버튼을 누르면 직렬과 병렬이 연결된 올바른 모습을 캔버스에 즉시 그릴 수 있습니다. 먼저 흐름을 구경해 보세요!</p>
+                            
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="loadExampleCircuit('series')" class="bg-slate-700 hover:bg-slate-600 border border-slate-600 hover:border-slate-500 py-2 px-1.5 rounded-lg flex flex-col items-center justify-center gap-1 transition duration-200">
+                                    <span class="text-xs font-bold text-yellow-400 flex items-center gap-1">
+                                        <span class="w-2 h-2 rounded-full bg-yellow-400"></span> 직렬 예시 로드
+                                    </span>
+                                    <span class="text-[9px] text-slate-400">외길 연결 방식</span>
+                                </button>
+                                <button onclick="loadExampleCircuit('parallel')" class="bg-slate-700 hover:bg-slate-600 border border-slate-600 hover:border-slate-500 py-2 px-1.5 rounded-lg flex flex-col items-center justify-center gap-1 transition duration-200">
+                                    <span class="text-xs font-bold text-blue-400 flex items-center gap-1">
+                                        <span class="w-2 h-2 rounded-full bg-blue-400"></span> 병렬 예시 로드
+                                    </span>
+                                    <span class="text-[9px] text-slate-400">갈림길 연결 방식</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- 미션 1: 직렬회로 구성하기 -->
+                        <div id="mission-card-1" class="border border-slate-700 bg-slate-800/60 p-3.5 rounded-xl space-y-3 relative overflow-hidden transition-all">
+                            <div class="absolute top-0 right-0 bg-yellow-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded-bl">미션 1</div>
+                            <h4 class="font-bold text-sm text-white">직렬 외길을 질주하라!</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">배터리 1개와 전구 2개를 <strong>'외길'</strong>로 끊김 없이 쭉 이어보세요. (전류의 통로가 단 1개여야 함)</p>
+                            
+                            <!-- 힌트 버튼 -->
+                            <div>
+                                <button onclick="toggleHint(1)" class="flex items-center gap-1 text-[11px] text-yellow-400 hover:text-yellow-300 font-semibold focus:outline-none transition">
+                                    <i data-lucide="lightbulb" class="w-3.5 h-3.5"></i>
+                                    <span id="hint-btn-text-1">💡 미션 1 힌트 펼치기</span>
+                                </button>
+                                <div id="hint-content-1" class="hidden mt-2 p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-[11px] text-slate-300 leading-relaxed space-y-1">
+                                    <p class="font-bold text-yellow-400">💡 직렬회로 힌트</p>
+                                    <p>배터리 <span class="text-red-400 font-bold">(+)극 단자</span>에서 출발한 전선이 <span class="text-yellow-400">첫 번째 전구</span>를 지나고, 다시 그 선이 <span class="text-yellow-400">두 번째 전구</span>를 거쳐 최종적으로 배터리의 <span class="text-blue-400 font-bold">(-)극 단자</span>로 하나의 큰 고리를 그리도록 한 줄로 연결해 주세요!</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-1 border-t border-slate-700 text-xs">
+                                <span class="text-slate-500">진행도: <strong id="m1-status" class="text-slate-400">미달성</strong></span>
+                                <span id="m1-badge" class="px-2 py-0.5 rounded-full bg-slate-700 text-slate-400 text-[10px] font-bold">진행 중</span>
+                            </div>
+                        </div>
+
+                        <!-- 미션 2: 병렬 갈림길 구성하기 -->
+                        <div id="mission-card-2" class="border border-slate-700 bg-slate-800/60 p-3.5 rounded-xl space-y-3 relative overflow-hidden transition-all">
+                            <div class="absolute top-0 right-0 bg-blue-500 text-white font-black text-[9px] px-2 py-0.5 rounded-bl">미션 2</div>
+                            <h4 class="font-bold text-sm text-white">두 갈래 전기 하이웨이</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed">배터리 1개와 전구 2개를 연결하되, <strong>'두 개의 갈림길'</strong>로 나누어 통과하도록 병렬 회로를 만들어 보세요.</p>
+                            
+                            <!-- 힌트 버튼 -->
+                            <div>
+                                <button onclick="toggleHint(2)" class="flex items-center gap-1 text-[11px] text-blue-400 hover:text-blue-300 font-semibold focus:outline-none transition">
+                                    <i data-lucide="lightbulb" class="w-3.5 h-3.5"></i>
+                                    <span id="hint-btn-text-2">💡 미션 2 힌트 펼치기</span>
+                                </button>
+                                <div id="hint-content-2" class="hidden mt-2 p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-[11px] text-slate-300 leading-relaxed space-y-1">
+                                    <p class="font-bold text-blue-400">💡 병렬회로 힌트</p>
+                                    <p>전선을 갈림길로 만들어야 합니다. 배터리 <span class="text-red-400 font-bold">(+)극</span>을 전선으로 갈라 전구 2개의 각각 한쪽 노란 단자에 나란히 꽂고, 반대편 단자들 역시 모두 묶어서 배터리의 <span class="text-blue-400 font-bold">(-)극</span>에 넣어주세요.</p>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center justify-between pt-1 border-t border-slate-700 text-xs">
+                                <span class="text-slate-500">진행도: <strong id="m2-status" class="text-slate-400">미달성</strong></span>
+                                <span id="m2-badge" class="px-2 py-0.5 rounded-full bg-slate-700 text-slate-400 text-[10px] font-bold">진행 중</span>
+                            </div>
+                        </div>
+
+                        <!-- 미션 3: 가위 도구 실습 (직렬 vs 병렬 분석) -->
+                        <div id="mission-card-3" class="border border-slate-700 bg-slate-800/60 p-3.5 rounded-xl space-y-3 relative overflow-hidden transition-all">
+                            <div class="absolute top-0 right-0 bg-purple-500 text-white font-black text-[9px] px-2 py-0.5 rounded-bl">미션 3</div>
+                            <h4 class="font-bold text-sm text-white">전선을 싹둑! 결과 관찰</h4>
+                            <p class="text-xs text-slate-400 leading-relaxed"><strong>'선 자르기' 도구</strong>를 활성화한 뒤, 회로 중 한 부분을 끊었을 때 일어나는 현상을 비교해 보세요.</p>
+                            
+                            <!-- 힌트 버튼 -->
+                            <div>
+                                <button onclick="toggleHint(3)" class="flex items-center gap-1 text-[11px] text-purple-400 hover:text-purple-300 font-semibold focus:outline-none transition">
+                                    <i data-lucide="lightbulb" class="w-3.5 h-3.5"></i>
+                                    <span id="hint-btn-text-3">💡 미션 3 힌트 펼치기</span>
+                                </button>
+                                <div id="hint-content-3" class="hidden mt-2 p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-[11px] text-slate-300 leading-relaxed space-y-1">
+                                    <p class="font-bold text-purple-400">💡 자르기 실험 힌트</p>
+                                    <p>부품 보관함 상단에서 <span class="bg-slate-700 px-1.5 py-0.5 rounded text-white font-bold"><i data-lucide="scissors" class="w-3 h-3 inline"></i> 선 자르기</span> 도구를 선택하세요. 캔버스 위에 그려진 푸른 전자를 통과시키는 연결 전선을 클릭하여 싹둑 잘랐을 때 전구가 꺼지는 패턴을 확인하세요.</p>
+                                </div>
+                            </div>
+
+                            <ul class="text-[11px] text-slate-400 list-disc list-inside space-y-1 bg-slate-900/50 p-2 rounded-lg">
+                                <li>직렬회로: 한 선을 자르면 <strong class="text-yellow-400">모두 꺼짐</strong></li>
+                                <li>병렬회로: 한 선을 잘라도 <strong class="text-yellow-400">나머지는 켜짐</strong></li>
+                            </ul>
+                            <div class="flex items-center justify-between pt-1 border-t border-slate-700 text-xs">
+                                <span class="text-slate-500">진행도: <strong id="m3-status" class="text-slate-400">관찰 대기</strong></span>
+                                <span id="m3-badge" class="px-2 py-0.5 rounded-full bg-slate-700 text-slate-400 text-[10px] font-bold">진행 중</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 미션 클리어 축하 배너 -->
+                    <div id="all-mission-complete" class="m-4 p-4 bg-emerald-600/20 border border-emerald-500/50 rounded-xl text-center space-y-1 hidden">
+                        <div class="text-emerald-400 font-bold text-sm flex items-center justify-center gap-1">
+                            <i data-lucide="party-popper" class="w-4 h-4"></i>
+                            <span>모든 실험 완료!</span>
+                        </div>
+                        <p class="text-[11px] text-emerald-300">직렬과 병렬의 차이를 마스터했습니다!</p>
+                    </div>
+                </div>
+
             </div>
 
-            <!-- 캔버스 하단 간단 도음말 -->
+            <!-- 캔버스 하단 간단 도움말 -->
             <div class="absolute bottom-4 left-4 right-4 bg-slate-900/80 backdrop-blur border border-slate-800 p-3 rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-2 text-xs text-slate-400 pointer-events-none">
                 <div class="flex items-center space-x-4">
                     <span class="flex items-center gap-1"><span class="w-3 h-3 rounded-full bg-red-500 inline-block"></span> 배터리 (+)극</span>
@@ -204,106 +331,6 @@
                 <div class="text-right text-slate-500">
                     드래그하여 부품 이동 | 단자를 클릭&드래그하여 선 연결 | 클릭하여 스위치 조작
                 </div>
-            </div>
-        </section>
-
-        <!-- 미션 오버레이 (오른쪽 사이드바 또는 모달 형태) -->
-        <section id="mission-panel" class="absolute right-0 top-0 bottom-0 w-85 bg-slate-900 border-l border-slate-700 shadow-2xl z-30 transform translate-x-full transition-transform duration-300 flex flex-col">
-            <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-850">
-                <div class="flex items-center space-x-2 text-yellow-400">
-                    <i data-lucide="trophy" class="w-5 h-5"></i>
-                    <h3 class="font-bold text-base">도전! 회로 미션</h3>
-                </div>
-                <button id="btn-mission-close" class="text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-
-            <div class="flex-1 overflow-y-auto p-4 space-y-4">
-                <!-- 미션 1: 직렬회로 구성하기 -->
-                <div id="mission-card-1" class="border border-slate-700 bg-slate-800/60 p-3.5 rounded-xl space-y-3 relative overflow-hidden transition-all">
-                    <div class="absolute top-0 right-0 bg-yellow-500 text-slate-950 font-black text-[9px] px-2 py-0.5 rounded-bl">미션 1</div>
-                    <h4 class="font-bold text-sm text-white">직렬 외길을 질주하라!</h4>
-                    <p class="text-xs text-slate-400 leading-relaxed">배터리 1개와 전구 2개를 <strong>'외길'</strong>로 끊김 없이 쭉 이어보세요. (전류의 통로가 단 1개여야 함)</p>
-                    
-                    <!-- 힌트 버튼 추가 -->
-                    <div>
-                        <button onclick="toggleHint(1)" class="flex items-center gap-1 text-[11px] text-yellow-400 hover:text-yellow-300 font-semibold focus:outline-none transition">
-                            <i data-lucide="lightbulb" class="w-3.5 h-3.5"></i>
-                            <span id="hint-btn-text-1">💡 미션 1 힌트 펼치기</span>
-                        </button>
-                        <div id="hint-content-1" class="hidden mt-2 p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-[11px] text-slate-300 leading-relaxed space-y-1">
-                            <p class="font-bold text-yellow-400">💡 직렬회로 힌트</p>
-                            <p>배터리 <span class="text-red-400 font-bold">(+)극 단자</span>에서 출발한 전선이 <span class="text-yellow-400">첫 번째 전구</span>를 지나고, 다시 그 선이 <span class="text-yellow-400">두 번째 전구</span>를 거쳐 최종적으로 배터리의 <span class="text-blue-400 font-bold">(-)극 단자</span>로 하나의 큰 고리를 그리도록 한 줄로 연결해 주세요!</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between pt-1 border-t border-slate-700 text-xs">
-                        <span class="text-slate-500">진행도: <strong id="m1-status" class="text-slate-400">미달성</strong></span>
-                        <span id="m1-badge" class="px-2 py-0.5 rounded-full bg-slate-700 text-slate-400 text-[10px] font-bold">진행 중</span>
-                    </div>
-                </div>
-
-                <!-- 미션 2: 병렬 갈림길 구성하기 -->
-                <div id="mission-card-2" class="border border-slate-700 bg-slate-800/60 p-3.5 rounded-xl space-y-3 relative overflow-hidden transition-all">
-                    <div class="absolute top-0 right-0 bg-blue-500 text-white font-black text-[9px] px-2 py-0.5 rounded-bl">미션 2</div>
-                    <h4 class="font-bold text-sm text-white">두 갈래 전기 하이웨이</h4>
-                    <p class="text-xs text-slate-400 leading-relaxed">배터리 1개와 전구 2개를 연결하되, <strong>'두 개의 갈림길'</strong>로 나누어 통과하도록 병렬 회로를 만들어 보세요.</p>
-                    
-                    <!-- 힌트 버튼 추가 -->
-                    <div>
-                        <button onclick="toggleHint(2)" class="flex items-center gap-1 text-[11px] text-blue-400 hover:text-blue-300 font-semibold focus:outline-none transition">
-                            <i data-lucide="lightbulb" class="w-3.5 h-3.5"></i>
-                            <span id="hint-btn-text-2">💡 미션 2 힌트 펼치기</span>
-                        </button>
-                        <div id="hint-content-2" class="hidden mt-2 p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-[11px] text-slate-300 leading-relaxed space-y-1">
-                            <p class="font-bold text-blue-400">💡 병렬회로 힌트</p>
-                            <p>전선을 갈림길로 만들어야 합니다. 배터리 <span class="text-red-400 font-bold">(+)극</span>을 전선으로 갈라 전구 2개의 각각 한쪽 노란 단자에 나란히 꽂고, 반대편 단자들 역시 모두 묶어서 배터리의 <span class="text-blue-400 font-bold">(-)극</span>에 넣어주세요.</p>
-                        </div>
-                    </div>
-
-                    <div class="flex items-center justify-between pt-1 border-t border-slate-700 text-xs">
-                        <span class="text-slate-500">진행도: <strong id="m2-status" class="text-slate-400">미달성</strong></span>
-                        <span id="m2-badge" class="px-2 py-0.5 rounded-full bg-slate-700 text-slate-400 text-[10px] font-bold">진행 중</span>
-                    </div>
-                </div>
-
-                <!-- 미션 3: 가위 도구 실습 (직렬 vs 병렬 분석) -->
-                <div id="mission-card-3" class="border border-slate-700 bg-slate-800/60 p-3.5 rounded-xl space-y-3 relative overflow-hidden transition-all">
-                    <div class="absolute top-0 right-0 bg-purple-500 text-white font-black text-[9px] px-2 py-0.5 rounded-bl">미션 3</div>
-                    <h4 class="font-bold text-sm text-white">전선을 싹둑! 결과 관찰</h4>
-                    <p class="text-xs text-slate-400 leading-relaxed"><strong>'선 자르기' 도구</strong>를 활성화한 뒤, 회로 중 한 부분을 끊었을 때 일어나는 현상을 비교해 보세요.</p>
-                    
-                    <!-- 힌트 버튼 추가 -->
-                    <div>
-                        <button onclick="toggleHint(3)" class="flex items-center gap-1 text-[11px] text-purple-400 hover:text-purple-300 font-semibold focus:outline-none transition">
-                            <i data-lucide="lightbulb" class="w-3.5 h-3.5"></i>
-                            <span id="hint-btn-text-3">💡 미션 3 힌트 펼치기</span>
-                        </button>
-                        <div id="hint-content-3" class="hidden mt-2 p-2.5 bg-slate-900 border border-slate-700 rounded-lg text-[11px] text-slate-300 leading-relaxed space-y-1">
-                            <p class="font-bold text-purple-400">💡 자르기 실험 힌트</p>
-                            <p>부품 보관함 상단에서 <span class="bg-slate-700 px-1.5 py-0.5 rounded text-white font-bold"><i data-lucide="scissors" class="w-3 h-3 inline"></i> 선 자르기</span> 도구를 선택하세요. 캔버스 위에 그려진 푸른 전자를 통과시키는 연결 전선을 클릭하여 싹둑 잘랐을 때 전구가 꺼지는 패턴을 확인하세요.</p>
-                        </div>
-                    </div>
-
-                    <ul class="text-[11px] text-slate-400 list-disc list-inside space-y-1 bg-slate-900/50 p-2 rounded-lg">
-                        <li>직렬회로: 한 선을 자르면 <strong class="text-yellow-400">모두 꺼짐</strong></li>
-                        <li>병렬회로: 한 선을 잘라도 <strong class="text-yellow-400">나머지는 켜짐</strong></li>
-                    </ul>
-                    <div class="flex items-center justify-between pt-1 border-t border-slate-700 text-xs">
-                        <span class="text-slate-500">진행도: <strong id="m3-status" class="text-slate-400">관찰 대기</strong></span>
-                        <span id="m3-badge" class="px-2 py-0.5 rounded-full bg-slate-700 text-slate-400 text-[10px] font-bold">진행 중</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- 미션 클리어 축하 배너 -->
-            <div id="all-mission-complete" class="m-4 p-4 bg-emerald-600/20 border border-emerald-500/50 rounded-xl text-center space-y-1 hidden">
-                <div class="text-emerald-400 font-bold text-sm flex items-center justify-center gap-1">
-                    <i data-lucide="party-popper" class="w-4 h-4"></i>
-                    <span>모든 실험 완료!</span>
-                </div>
-                <p class="text-[11px] text-emerald-300">직렬과 병렬의 차이를 마스터했습니다!</p>
             </div>
         </section>
 
@@ -636,7 +663,6 @@
         }
 
         // -------------------------------------------------------------
-        // 물리 시뮬레이션 엔진 및 네트워크 분석법
         // -------------------------------------------------------------
         let bulbsCurrent = {};
 
@@ -881,8 +907,8 @@
         }
 
         // -------------------------------------------------------------
-        // 미션 시스템 판정 (Gamification)
         // -------------------------------------------------------------
+        // 미션 시스템 판정 (Gamification)
         function evaluateMissions() {
             const bulbs = parts.filter(p => p.type === 'bulb');
             const activeBulbs = bulbs.filter(b => getBulbBrightness(b.id) > 0);
@@ -936,8 +962,59 @@
             }
         }
 
+        // 학습용 예시 회로 불러오기 함수 (직렬 / 병렬 지원)
+        function loadExampleCircuit(type) {
+            // 현재 작업 중인 데이터 초기화
+            parts = [];
+            wires = [];
+            nodeIdCounter = 1;
+
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            if (type === 'series') {
+                // 직렬 예시 구성
+                // 배터리 1개, 전구 2개 배치
+                const bat = new CircuitPart(101, 'battery', cx - 150, cy + 100);
+                const bulb1 = new CircuitPart(102, 'bulb', cx - 40, cy - 100);
+                const bulb2 = new CircuitPart(103, 'bulb', cx + 120, cy - 100);
+
+                parts.push(bat, bulb1, bulb2);
+
+                // 배터리(+) -> 전구1(L) -> 전구1(R) -> 전구2(L) -> 전구2(R) -> 배터리(-)
+                wires.push(
+                    { fromNodeId: bat.nodes[0].id, toNodeId: bulb1.nodes[0].id },   // (+) 극 -> 전구1 왼쪽 단자
+                    { fromNodeId: bulb1.nodes[1].id, toNodeId: bulb2.nodes[0].id }, // 전구1 오른쪽 단자 -> 전구2 왼쪽 단자
+                    { fromNodeId: bulb2.nodes[1].id, toNodeId: bat.nodes[1].id }    // 전구2 오른쪽 단자 -> (-) 극
+                );
+
+                showNotification("직렬 예시 로드 완료!", "배터리 1개와 전구 2개가 하나의 고리(외길)로 이어져 전자가 일정하게 도는 회로가 완성되었습니다.", "book-open");
+
+            } else if (type === 'parallel') {
+                // 병렬 예시 구성
+                // 배터리 1개, 전구 2개 배치 (두 개가 병렬 독립 가지에 존재하도록)
+                const bat = new CircuitPart(101, 'battery', cx - 150, cy);
+                const bulb1 = new CircuitPart(102, 'bulb', cx + 100, cy - 100);
+                const bulb2 = new CircuitPart(103, 'bulb', cx + 100, cy + 100);
+
+                parts.push(bat, bulb1, bulb2);
+
+                // 배터리(+)에서 나와서 각각 전구 1과 전구 2의 입구에 나누어 들어가고, 배터리(-)로 각각 회수됨
+                wires.push(
+                    { fromNodeId: bat.nodes[0].id, toNodeId: bulb1.nodes[0].id }, // (+) 극 -> 전구1 왼쪽
+                    { fromNodeId: bat.nodes[0].id, toNodeId: bulb2.nodes[0].id }, // (+) 극 -> 전구2 왼쪽
+                    { fromNodeId: bulb1.nodes[1].id, toNodeId: bat.nodes[1].id }, // 전구1 오른쪽 -> (-) 극
+                    { fromNodeId: bulb2.nodes[1].id, toNodeId: bat.nodes[1].id }  // 전구2 오른쪽 -> (-) 극
+                );
+
+                showNotification("병렬 예시 로드 완료!", "배터리의 양극이 각각의 전구에 독립된 경로(갈림길)로 연결되어 나란히 흐르는 병렬회로가 완성되었습니다.", "book-open");
+            }
+
+            recalculateCircuit();
+            drawEverything();
+        }
+
         // -------------------------------------------------------------
-        // 캔버스 사이즈 및 렌더링 시스템
         // -------------------------------------------------------------
         function resizeCanvas() {
             const rect = container.getBoundingClientRect();
@@ -1044,7 +1121,6 @@
         }
 
         // -------------------------------------------------------------
-        // 마우스 및 터치 인터랙션 컨트롤 핸들러
         // -------------------------------------------------------------
         function getMousePos(e) {
             const rect = canvas.getBoundingClientRect();
@@ -1054,18 +1130,6 @@
                 x: clientX - rect.left,
                 y: clientY - rect.top
             };
-        }
-
-        let partIdCounter = 1;
-        function addPart(type) {
-            const cx = canvas.width / 2;
-            const cy = canvas.height / 2;
-            const newPart = new CircuitPart(partIdCounter++, type, cx + (Math.random()*40 - 20), cy + (Math.random()*40 - 20));
-            parts.push(newPart);
-            
-            recalculateCircuit();
-            drawEverything();
-            showNotification("부품 추가", `${type === 'battery' ? '배터리' : type === 'bulb' ? '전구' : '스위치'}가 추가되었습니다.`, "plus-circle");
         }
 
         function handleMouseDown(e) {
@@ -1207,7 +1271,75 @@
         }
 
         // -------------------------------------------------------------
-        // 헤더 가이드 모달 인터랙션 및 도움말 바인딩
+        // -------------------------------------------------------------
+        // 팝업창 드래그 이동 기능 바인딩 (마우스 및 터치 동시 지원)
+        const missionPanel = document.getElementById('mission-panel');
+        const missionHeader = document.getElementById('mission-header');
+        let isDraggingMission = false;
+        let missionStartPos = { x: 0, y: 0 };
+
+        function initDraggableMission() {
+            // 마우스 드래그 이벤트
+            missionHeader.addEventListener('mousedown', (e) => {
+                if (e.target.closest('button')) return; // 닫기버튼 등 클릭 시 예외
+                isDraggingMission = true;
+                const rect = missionPanel.getBoundingClientRect();
+                missionStartPos.x = e.clientX - rect.left;
+                missionStartPos.y = e.clientY - rect.top;
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDraggingMission) return;
+                const containerRect = container.getBoundingClientRect();
+                let left = e.clientX - containerRect.left - missionStartPos.x;
+                let top = e.clientY - containerRect.top - missionStartPos.y;
+
+                // 영역 이탈 방지 경계 연산
+                left = Math.max(0, Math.min(containerRect.width - missionPanel.offsetWidth, left));
+                top = Math.max(0, Math.min(containerRect.height - missionPanel.offsetHeight, top));
+
+                missionPanel.style.left = `${left}px`;
+                missionPanel.style.top = `${top}px`;
+                missionPanel.style.right = 'auto';
+                missionPanel.style.bottom = 'auto';
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDraggingMission = false;
+            });
+
+            // 모바일 터치 드래그 이벤트
+            missionHeader.addEventListener('touchstart', (e) => {
+                if (e.target.closest('button')) return;
+                isDraggingMission = true;
+                const rect = missionPanel.getBoundingClientRect();
+                const touch = e.touches[0];
+                missionStartPos.x = touch.clientX - rect.left;
+                missionStartPos.y = touch.clientY - rect.top;
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (!isDraggingMission) return;
+                const containerRect = container.getBoundingClientRect();
+                const touch = e.touches[0];
+                let left = touch.clientX - containerRect.left - missionStartPos.x;
+                let top = touch.clientY - containerRect.top - missionStartPos.y;
+
+                left = Math.max(0, Math.min(containerRect.width - missionPanel.offsetWidth, left));
+                top = Math.max(0, Math.min(containerRect.height - missionPanel.offsetHeight, top));
+
+                missionPanel.style.left = `${left}px`;
+                missionPanel.style.top = `${top}px`;
+                missionPanel.style.right = 'auto';
+                missionPanel.style.bottom = 'auto';
+            }, { passive: true });
+
+            window.addEventListener('touchend', () => {
+                isDraggingMission = false;
+            });
+        }
+
+        // -------------------------------------------------------------
         // -------------------------------------------------------------
         const guideModal = document.getElementById('how-to-guide-modal');
         
@@ -1268,13 +1400,24 @@
             showNotification("초기화 완료", "모든 회로 배치와 전선 연결이 초기 상태로 세팅되었습니다.", "rotate-ccw");
         });
 
-        // 우측 미션 패널 토글 작동
-        const missionPanel = document.getElementById('mission-panel');
+        // 플로팅 미션 패널 온/오프 토글 바인딩
         document.getElementById('btn-mission-toggle').addEventListener('click', () => {
-            missionPanel.classList.toggle('translate-x-full');
+            const isHidden = missionPanel.classList.contains('hidden');
+            if (isHidden) {
+                missionPanel.classList.remove('hidden');
+                // 처음 열 때 캔버스 상단 중앙이나 우측의 적당한 디폴트 위치 선점
+                const containerRect = container.getBoundingClientRect();
+                missionPanel.style.left = `${containerRect.width - missionPanel.offsetWidth - 20}px`;
+                missionPanel.style.top = `64px`;
+                missionPanel.style.right = 'auto';
+                missionPanel.style.bottom = 'auto';
+            } else {
+                missionPanel.classList.add('hidden');
+            }
         });
+        
         document.getElementById('btn-mission-close').addEventListener('click', () => {
-            missionPanel.classList.add('translate-x-full');
+            missionPanel.classList.add('hidden');
         });
 
         // -------------------------------------------------------------
@@ -1330,12 +1473,13 @@
         window.onload = function() {
             resizeCanvas();
             initPresets();
+            initDraggableMission();
             animationLoop();
 
             setTimeout(() => {
                 showNotification(
                     "서킷 크래프트에 오신 것을 환영합니다! ⚡", 
-                    "배터리와 전구를 연결하여 나만의 전기회로를 구축해 봅시다. 회로 만들기가 어렵다면 언제든지 상단의 [사용법 가이드]나 우측의 [미션 힌트]를 열어 도움을 받아보세요!", 
+                    "배터리와 전구를 연결하여 나만의 전기회로를 구축해 봅시다. 회로 만들기가 어렵다면 언제든지 상단의 [사용법 가이드]나 우측의 [미션 & 예시 보기]를 열어 직렬/병렬 회로를 실시간으로 직접 확인해 보세요!", 
                     "sparkles"
                 );
             }, 500);
